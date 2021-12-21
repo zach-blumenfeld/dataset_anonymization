@@ -21,6 +21,9 @@ producing values in a stochastic and unseeded matter unless otherwise defined by
 different anonymized values on each run in a random way. This is by design, as it makes it as difficult as possible to 
 back-out or brute-force the original values, even if the users' anonymization source code is made publicly available.
 
+## Installation
+`python -m pip install git+https://github.com/zach-blumenfeld/dataset_anonymization.git`
+
 ## Usage
 To use, simply do
 ```
