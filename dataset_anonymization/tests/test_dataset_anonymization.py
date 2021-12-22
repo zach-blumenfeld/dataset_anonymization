@@ -33,18 +33,14 @@ class TestBase(unittest.TestCase):
             self.assertEqual(pv[i], pv[i + VEC_LENGTH])
 
 
-class TestHash512(TestBase):
+class TestTruncHash(TestBase):
 
     def __test_uniqueness_and_duplicate_preservation(self, v):
-        h1 = dataset_anonymization.hash512(v, SALT)
-        h2 = dataset_anonymization.hash512(v, SALT)
-        h1_strings = dataset_anonymization.hash512(v, SALT, digests_as_strings=True)
-        h2_strings = dataset_anonymization.hash512(v, SALT, digests_as_strings=True)
+        h1 = dataset_anonymization.trunc_hash(v, SALT)
+        h2 = dataset_anonymization.trunc_hash(v, SALT)
 
         self._test_uniqueness(h1)
-        self._test_uniqueness(h1_strings)
         self._test_duplicate_preservation_in_doubled_vec(h1 + h2)
-        self._test_duplicate_preservation_in_doubled_vec(h1_strings + h2_strings)
 
     def test_uniqueness_and_duplicate_preservation_int(self):
         self.__test_uniqueness_and_duplicate_preservation([i for i in range(VEC_LENGTH)])
@@ -57,12 +53,12 @@ class TestHash512(TestBase):
                            STR_COL: [random_string() for i in range(VEC_LENGTH)]})
 
         df1 = df.copy()
-        dataset_anonymization.hash512_dataframe(df1, SALT_DICT)
+        dataset_anonymization.trunc_hash_dataframe(df1, SALT_DICT)
         self._test_uniqueness(df1[INT_COL + COL_PREFIX].tolist())
         self._test_uniqueness(df1[STR_COL + COL_PREFIX].tolist())
 
         df2 = df.copy()
-        dataset_anonymization.hash512_dataframe(df2, SALT_DICT)
+        dataset_anonymization.trunc_hash_dataframe(df2, SALT_DICT)
         df3 = pd.concat([df1, df2])
         self._test_duplicate_preservation_in_doubled_vec(df3[INT_COL + COL_PREFIX].tolist())
         self._test_duplicate_preservation_in_doubled_vec(df3[STR_COL + COL_PREFIX].tolist())
@@ -71,9 +67,9 @@ class TestHash512(TestBase):
         df = pd.DataFrame({INT_COL: [i for i in range(VEC_LENGTH)],
                            STR_COL: [random_string() for i in range(VEC_LENGTH)]})
 
-        dataset_anonymization.hash512_dataframe(df, SALT_DICT, replace=True)
-        self.assertEqual(type(df[INT_COL][0]), bytes)
-        self.assertEqual(type(df[STR_COL][0]), bytes)
+        dataset_anonymization.trunc_hash_dataframe(df, SALT_DICT, replace=True)
+        self.assertEqual(sum(df[INT_COL].apply(len) == 32), VEC_LENGTH)
+        self.assertEqual(sum(df[STR_COL].apply(len) == 32), VEC_LENGTH)
 
 
 class TestAnonymization(TestBase):

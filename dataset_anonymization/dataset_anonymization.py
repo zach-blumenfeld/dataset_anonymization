@@ -12,26 +12,24 @@ def __df_col_assign(df: pd.DataFrame, replace: bool, col: str, prefix: str, valu
         df[col + prefix] = values
 
 
-def hash512(value_list: List, salt: str, digests_as_strings=False):
+def trunc_hash(value_list: List, salt: str) -> List[str]:
+    encoded_salt = salt.encode()
     hash_values = []
     for value in value_list:
         m = hashlib.sha512()
-        m.update(salt.encode())
+        m.update(encoded_salt)
         m.update(str(value).encode())
-        if digests_as_strings:
-            hash_values.append(m.hexdigest())
-        else:
-            hash_values.append(m.digest())
+        hash_values.append(m.hexdigest()[:32])
     return hash_values
 
 
-def hash512_dataframe(df: pd.DataFrame, columns: Dict[str, str], digests_as_strings=False, replace=False,
-                      prefix="_anonymized"):
+def trunc_hash_dataframe(df: pd.DataFrame, columns: Dict[str, str], replace=False,
+                         prefix="_anonymized"):
     for col, salt in columns.items():
-        __df_col_assign(df, replace, col, prefix, hash512(df[col], salt, digests_as_strings=digests_as_strings))
+        __df_col_assign(df, replace, col, prefix, trunc_hash(df[col], salt))
 
 
-def anonymize(value_list: List, generate: Callable):
+def anonymize(value_list: List, generate: Callable) -> List:
     value_map = {}
     anon_values = []
     for value in value_list:
@@ -49,7 +47,7 @@ def anonymize_dataframe(df: pd.DataFrame, columns: Dict[str, Callable], replace=
         __df_col_assign(df, replace, col, prefix, anonymize(df[col], gen))
 
 
-def anonymize_uuid(value_list: List):
+def anonymize_uuid(value_list: List) -> List[uuid.UUID]:
     return anonymize(value_list, uuid.uuid4)
 
 
