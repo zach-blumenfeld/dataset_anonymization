@@ -8,7 +8,7 @@ import random
 VEC_LENGTH = 100
 LETTERS = string.ascii_letters
 STRING_LENGTH = 8
-COL_PREFIX = '_anonymized'
+COL_SUFFIX = '_anonymized'
 INT_COL = 'ints'
 STR_COL = 'strings'
 SALT = 's0'
@@ -54,14 +54,14 @@ class TestTruncHash(TestBase):
 
         df1 = df.copy()
         dataset_anonymization.trunc_hash_dataframe(df1, SALT_DICT)
-        self._test_uniqueness(df1[INT_COL + COL_PREFIX].tolist())
-        self._test_uniqueness(df1[STR_COL + COL_PREFIX].tolist())
+        self._test_uniqueness(df1[INT_COL + COL_SUFFIX].tolist())
+        self._test_uniqueness(df1[STR_COL + COL_SUFFIX].tolist())
 
         df2 = df.copy()
         dataset_anonymization.trunc_hash_dataframe(df2, SALT_DICT)
         df3 = pd.concat([df1, df2])
-        self._test_duplicate_preservation_in_doubled_vec(df3[INT_COL + COL_PREFIX].tolist())
-        self._test_duplicate_preservation_in_doubled_vec(df3[STR_COL + COL_PREFIX].tolist())
+        self._test_duplicate_preservation_in_doubled_vec(df3[INT_COL + COL_SUFFIX].tolist())
+        self._test_duplicate_preservation_in_doubled_vec(df3[STR_COL + COL_SUFFIX].tolist())
 
     def test_df_replace(self):
         df = pd.DataFrame({INT_COL: [i for i in range(VEC_LENGTH)],
@@ -94,24 +94,24 @@ class TestAnonymization(TestBase):
                            STR_COL: [random_string() for i in range(VEC_LENGTH)]})
         df1 = df.copy()
         dataset_anonymization.anonymize_dataframe(df1, {INT_COL: uuid.uuid4})
-        self._test_uniqueness(df1[INT_COL + COL_PREFIX].tolist())
+        self._test_uniqueness(df1[INT_COL + COL_SUFFIX].tolist())
 
         df2 = pd.concat([df.copy(), df.copy()])
         dataset_anonymization.anonymize_dataframe(df2, {INT_COL: uuid.uuid4})
-        self._test_duplicate_preservation_in_doubled_vec(df2[INT_COL + COL_PREFIX].tolist())
+        self._test_duplicate_preservation_in_doubled_vec(df2[INT_COL + COL_SUFFIX].tolist())
 
     def test_df_uuid_uniqueness_and_duplicate_preservation_int(self):
         df = pd.DataFrame({INT_COL: [i for i in range(VEC_LENGTH)],
                            STR_COL: [random_string() for i in range(VEC_LENGTH)]})
         df1 = df.copy()
         dataset_anonymization.anonymize_dataframe_uuid(df1, [INT_COL, STR_COL])
-        self._test_uniqueness(df1[INT_COL + COL_PREFIX].tolist())
-        self._test_uniqueness(df1[STR_COL + COL_PREFIX].tolist())
+        self._test_uniqueness(df1[INT_COL + COL_SUFFIX].tolist())
+        self._test_uniqueness(df1[STR_COL + COL_SUFFIX].tolist())
 
         df2 = pd.concat([df.copy(), df.copy()])
         dataset_anonymization.anonymize_dataframe_uuid(df2, [INT_COL, STR_COL])
-        self._test_duplicate_preservation_in_doubled_vec(df2[INT_COL + COL_PREFIX].tolist())
-        self._test_duplicate_preservation_in_doubled_vec(df2[STR_COL + COL_PREFIX].tolist())
+        self._test_duplicate_preservation_in_doubled_vec(df2[INT_COL + COL_SUFFIX].tolist())
+        self._test_duplicate_preservation_in_doubled_vec(df2[STR_COL + COL_SUFFIX].tolist())
 
     def test_df_replace(self):
         df = pd.DataFrame({INT_COL: [i for i in range(VEC_LENGTH)],

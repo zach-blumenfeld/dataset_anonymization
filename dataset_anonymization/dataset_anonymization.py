@@ -4,12 +4,12 @@ import uuid
 import hashlib
 
 
-def __df_col_assign(df: pd.DataFrame, replace: bool, col: str, prefix: str, values: List):
+def __df_col_assign(df: pd.DataFrame, replace: bool, col: str, suffix: str, values: List):
     if replace:
         df.drop(columns=[col], inplace=True)
         df[col] = values
     else:
-        df[col + prefix] = values
+        df[col + suffix] = values
 
 
 def trunc_hash(value_list: List, salt: str) -> List[str]:
@@ -24,9 +24,9 @@ def trunc_hash(value_list: List, salt: str) -> List[str]:
 
 
 def trunc_hash_dataframe(df: pd.DataFrame, columns: Dict[str, str], replace=False,
-                         prefix="_anonymized"):
+                         suffix="_anonymized"):
     for col, salt in columns.items():
-        __df_col_assign(df, replace, col, prefix, trunc_hash(df[col], salt))
+        __df_col_assign(df, replace, col, suffix, trunc_hash(df[col], salt))
 
 
 def anonymize(value_list: List, generate: Callable) -> List:
@@ -42,14 +42,14 @@ def anonymize(value_list: List, generate: Callable) -> List:
     return anon_values
 
 
-def anonymize_dataframe(df: pd.DataFrame, columns: Dict[str, Callable], replace=False, prefix="_anonymized"):
+def anonymize_dataframe(df: pd.DataFrame, columns: Dict[str, Callable], replace=False, suffix="_anonymized"):
     for col, gen in columns.items():
-        __df_col_assign(df, replace, col, prefix, anonymize(df[col], gen))
+        __df_col_assign(df, replace, col, suffix, anonymize(df[col], gen))
 
 
 def anonymize_uuid(value_list: List) -> List[uuid.UUID]:
     return anonymize(value_list, uuid.uuid4)
 
 
-def anonymize_dataframe_uuid(df: pd.DataFrame, columns: List[str], replace=False, prefix="_anonymized"):
-    anonymize_dataframe(df, dict(zip(columns, [uuid.uuid4] * len(columns))), replace=replace, prefix=prefix)
+def anonymize_dataframe_uuid(df: pd.DataFrame, columns: List[str], replace=False, suffix="_anonymized"):
+    anonymize_dataframe(df, dict(zip(columns, [uuid.uuid4] * len(columns))), replace=replace, suffix=suffix)
