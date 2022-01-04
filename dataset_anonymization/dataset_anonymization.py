@@ -13,19 +13,19 @@ def __df_col_assign(df: pd.DataFrame, replace: bool, col: str, suffix: str, valu
         df[col + suffix] = values
 
 
-def hash_key(value_list: List, salt: str) -> List[str]:
-    encoded_salt = salt.encode()
+def hash_key(value_list: List, passphrase: str) -> List[str]:
+    encoded_passphrase = passphrase.encode()
     hash_values = []
     for value in value_list:
         m = hashlib.sha512()
-        m.update(encoded_salt)
+        m.update(encoded_passphrase)
         m.update(str(value).encode())
         hash_values.append(m.hexdigest()[:32])
     return hash_values
 
 
-def hash_df_key(df: pd.DataFrame, column: str, salt: str, replace: bool = False, suffix: str = "_anonymized"):
-    __df_col_assign(df, replace, column, suffix, hash_key(df[column], salt))
+def hash_df_key(df: pd.DataFrame, column: str, passphrase: str, replace: bool = False, suffix: str = "_anonymized"):
+    __df_col_assign(df, replace, column, suffix, hash_key(df[column], passphrase))
 
 
 def anonymize(value_list: List) -> List[uuid.UUID]:
@@ -45,7 +45,7 @@ def anonymize_df_col(df: pd.DataFrame, column: str, replace: bool = False, suffi
     __df_col_assign(df, replace, column, suffix, anonymize(df[column]))
 
 
-def anonymize_category(value_list: List, prefix: str = 'type_', postfix: str = '') -> List[str]:
+def anonymize_label(value_list: List, prefix: str = 'TYPE_', postfix: str = '') -> List[str]:
     value_set = set(value_list)
     n = len(value_set)
     enums = [prefix + str(i) + postfix for i in range(1, n + 1)]
@@ -57,6 +57,6 @@ def anonymize_category(value_list: List, prefix: str = 'type_', postfix: str = '
     return anon_values
 
 
-def anonymize_df_category(df: pd.DataFrame, column: str, prefix: str = 'type_', postfix: str = '',
-                          replace: bool = False, suffix: str = "_anonymized"):
-    __df_col_assign(df, replace, column, suffix, anonymize_category(df[column], prefix=prefix, postfix=postfix))
+def anonymize_df_label(df: pd.DataFrame, column: str, prefix: str = 'TYPE_', postfix: str = '',
+                       replace: bool = False, suffix: str = "_anonymized"):
+    __df_col_assign(df, replace, column, suffix, anonymize_label(df[column], prefix=prefix, postfix=postfix))

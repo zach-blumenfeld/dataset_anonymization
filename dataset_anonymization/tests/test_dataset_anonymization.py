@@ -12,8 +12,7 @@ STRING_LENGTH = 8
 COL_SUFFIX = '_anonymized'
 INT_COL = 'ints'
 STR_COL = 'strings'
-SALT = 's0'
-SALT_DICT = {INT_COL: 's1', STR_COL: 's2'}
+PASSPHRASE = 's0'
 
 
 def random_string():
@@ -41,24 +40,24 @@ class TestBase(unittest.TestCase):
 class TestHashKey(TestBase):
 
     def test_uniqueness_int(self):
-        self._test_uniqueness(dataset_anonymization.hash_key(INT_VEC, SALT))
+        self._test_uniqueness(dataset_anonymization.hash_key(INT_VEC, PASSPHRASE))
 
     def test_duplicate_preservation_int(self):
-        self._test_duplicate_preservation_in_doubled_vec(dataset_anonymization.hash_key(INT_VEC, SALT) +
-                                                         dataset_anonymization.hash_key(INT_VEC, SALT))
+        self._test_duplicate_preservation_in_doubled_vec(dataset_anonymization.hash_key(INT_VEC, PASSPHRASE) +
+                                                         dataset_anonymization.hash_key(INT_VEC, PASSPHRASE))
 
     def test_uniqueness_str(self):
-        self._test_uniqueness(dataset_anonymization.hash_key([random_string() for i in range(VEC_LENGTH)], SALT))
+        self._test_uniqueness(dataset_anonymization.hash_key([random_string() for i in range(VEC_LENGTH)], PASSPHRASE))
 
     def test_duplicate_preservation_str(self):
         v = [random_string() for i in range(VEC_LENGTH)]
-        self._test_duplicate_preservation_in_doubled_vec(dataset_anonymization.hash_key(v, SALT) +
-                                                         dataset_anonymization.hash_key(v, SALT))
+        self._test_duplicate_preservation_in_doubled_vec(dataset_anonymization.hash_key(v, PASSPHRASE) +
+                                                         dataset_anonymization.hash_key(v, PASSPHRASE))
 
     def test_df_uniqueness(self):
         df = pd.DataFrame({INT_COL: INT_VEC, STR_COL: [random_string() for i in range(VEC_LENGTH)]})
-        dataset_anonymization.hash_df_key(df, INT_COL, SALT)
-        dataset_anonymization.hash_df_key(df, STR_COL, SALT)
+        dataset_anonymization.hash_df_key(df, INT_COL, PASSPHRASE)
+        dataset_anonymization.hash_df_key(df, STR_COL, PASSPHRASE)
         self._test_uniqueness(df[INT_COL + COL_SUFFIX].tolist())
         self._test_uniqueness(df[STR_COL + COL_SUFFIX].tolist())
 
@@ -66,19 +65,19 @@ class TestHashKey(TestBase):
         df = pd.DataFrame({INT_COL: INT_VEC, STR_COL: [random_string() for i in range(VEC_LENGTH)]})
 
         df1 = df.copy()
-        dataset_anonymization.hash_df_key(df1, INT_COL, SALT)
-        dataset_anonymization.hash_df_key(df1, STR_COL, SALT)
+        dataset_anonymization.hash_df_key(df1, INT_COL, PASSPHRASE)
+        dataset_anonymization.hash_df_key(df1, STR_COL, PASSPHRASE)
         df2 = df.copy()
-        dataset_anonymization.hash_df_key(df2, INT_COL, SALT)
-        dataset_anonymization.hash_df_key(df2, STR_COL, SALT)
+        dataset_anonymization.hash_df_key(df2, INT_COL, PASSPHRASE)
+        dataset_anonymization.hash_df_key(df2, STR_COL, PASSPHRASE)
         df3 = pd.concat([df1, df2])
         self._test_duplicate_preservation_in_doubled_vec(df3[INT_COL + COL_SUFFIX].tolist())
         self._test_duplicate_preservation_in_doubled_vec(df3[STR_COL + COL_SUFFIX].tolist())
 
     def test_df_replace(self):
         df = pd.DataFrame({INT_COL: INT_VEC, STR_COL: [random_string() for i in range(VEC_LENGTH)]})
-        dataset_anonymization.hash_df_key(df, INT_COL, SALT, replace=True)
-        dataset_anonymization.hash_df_key(df, STR_COL, SALT, replace=True)
+        dataset_anonymization.hash_df_key(df, INT_COL, PASSPHRASE, replace=True)
+        dataset_anonymization.hash_df_key(df, STR_COL, PASSPHRASE, replace=True)
         self.assertEqual(sum(df[INT_COL].apply(len) == 32), VEC_LENGTH)
         self.assertEqual(sum(df[STR_COL].apply(len) == 32), VEC_LENGTH)
 
@@ -130,51 +129,51 @@ class TestAnonymize(TestBase):
         self.assertEqual(type(df.loc[0, STR_COL]), uuid.UUID)
 
 
-class TestAnonymizeCategory(TestBase):
+class TestAnonymizeLabel(TestBase):
 
     def test_uniqueness_int(self):
-        self._test_uniqueness(dataset_anonymization.anonymize_category(INT_VEC))
+        self._test_uniqueness(dataset_anonymization.anonymize_label(INT_VEC))
 
     def test_unrepeatability_int(self):
-        self._test_none_equal(dataset_anonymization.anonymize_category(INT_VEC),
-                              dataset_anonymization.anonymize_category(INT_VEC))
+        self._test_none_equal(dataset_anonymization.anonymize_label(INT_VEC),
+                              dataset_anonymization.anonymize_label(INT_VEC))
 
     def test_duplicate_preservation_int(self):
-        self._test_duplicate_preservation_in_doubled_vec(dataset_anonymization.anonymize_category(INT_VEC + INT_VEC))
+        self._test_duplicate_preservation_in_doubled_vec(dataset_anonymization.anonymize_label(INT_VEC + INT_VEC))
 
     def test_uniqueness_str(self):
-        self._test_uniqueness(dataset_anonymization.anonymize_category([random_string() for i in range(VEC_LENGTH)]))
+        self._test_uniqueness(dataset_anonymization.anonymize_label([random_string() for i in range(VEC_LENGTH)]))
 
     def test_unrepeatability_str(self):
         v = [random_string() for i in range(VEC_LENGTH)]
-        self._test_none_equal(dataset_anonymization.anonymize_category(v), dataset_anonymization.anonymize_category(v))
+        self._test_none_equal(dataset_anonymization.anonymize_label(v), dataset_anonymization.anonymize_label(v))
 
     def test_duplicate_preservation_str(self):
         v = [random_string() for i in range(VEC_LENGTH)]
-        self._test_duplicate_preservation_in_doubled_vec(dataset_anonymization.anonymize_category(v + v))
+        self._test_duplicate_preservation_in_doubled_vec(dataset_anonymization.anonymize_label(v + v))
 
     def test_df_uniqueness_int(self):
         df = pd.DataFrame({INT_COL: INT_VEC, STR_COL: [random_string() for i in range(VEC_LENGTH)]})
-        dataset_anonymization.anonymize_df_category(df, INT_COL)
+        dataset_anonymization.anonymize_df_label(df, INT_COL)
         self._test_uniqueness(df[INT_COL + COL_SUFFIX].tolist())
 
     def test_df_unrepeatability_int(self):
         df = pd.DataFrame({INT_COL: INT_VEC, STR_COL: [random_string() for i in range(VEC_LENGTH)]})
         df2 = df.copy()
         df3 = df.copy()
-        dataset_anonymization.anonymize_df_category(df2, INT_COL)
-        dataset_anonymization.anonymize_df_category(df3, INT_COL)
+        dataset_anonymization.anonymize_df_label(df2, INT_COL)
+        dataset_anonymization.anonymize_df_label(df3, INT_COL)
         self._test_none_equal(df2[INT_COL + COL_SUFFIX].tolist(), df3[INT_COL + COL_SUFFIX].tolist())
 
     def test_df_duplicate_preservation_int(self):
         df = pd.DataFrame({INT_COL: INT_VEC, STR_COL: [random_string() for i in range(VEC_LENGTH)]})
         df2 = pd.concat([df.copy(), df.copy()])
-        dataset_anonymization.anonymize_df_category(df2, INT_COL)
+        dataset_anonymization.anonymize_df_label(df2, INT_COL)
         self._test_duplicate_preservation_in_doubled_vec(df2[INT_COL + COL_SUFFIX].tolist())
 
     def test_df_replace(self):
         df = pd.DataFrame({INT_COL: INT_VEC, STR_COL: [random_string() for i in range(VEC_LENGTH)]})
-        dataset_anonymization.anonymize_df_category(df, INT_COL, replace=True)
+        dataset_anonymization.anonymize_df_label(df, INT_COL, replace=True)
         self.assertEqual(type(df.loc[0, STR_COL]), str)
 
 
